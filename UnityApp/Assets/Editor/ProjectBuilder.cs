@@ -26,7 +26,9 @@ public class ProjectBuilder {
 
 		// Set value of NSLocationAlwaysUsageDescription in Xcode plist
 		var buildKey = "NSLocationAlwaysUsageDescription";
-		rootDict.SetString(buildKey, "Just to show ");
+		rootDict.SetString(buildKey, "Just to show");
+		buildKey = "NSLocationAlwaysAndWhenInUseUsageDescription";
+		rootDict.SetString(buildKey, "Just to show");
 
 		// Write to file
 		File.WriteAllText(plistPath, plist.WriteToString());
