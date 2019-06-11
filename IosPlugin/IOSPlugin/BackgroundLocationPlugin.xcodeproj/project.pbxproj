@@ -26,7 +26,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		E497C7D21E6613CA00FE34CB /* libiOSPlugin.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libiOSPlugin.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E497C7D21E6613CA00FE34CB /* libBackgroundLocationPlugin.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libBackgroundLocationPlugin.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		E497C7DE1E6DC90C00FE34CB /* LocationManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LocationManager.h; sourceTree = "<group>"; };
 		E497C7DF1E6DC9A700FE34CB /* LocationManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LocationManager.m; sourceTree = "<group>"; };
 		E497C7E11E6DC9C800FE34CB /* DBManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DBManager.h; sourceTree = "<group>"; };
@@ -55,7 +55,7 @@
 		E497C7D31E6613CA00FE34CB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				E497C7D21E6613CA00FE34CB /* libiOSPlugin.a */,
+				E497C7D21E6613CA00FE34CB /* libBackgroundLocationPlugin.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -74,9 +74,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		E497C7D11E6613CA00FE34CB /* iOSPlugin */ = {
+		E497C7D11E6613CA00FE34CB /* BackgroundLocationPlugin */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = E497C7DB1E6613CA00FE34CB /* Build configuration list for PBXNativeTarget "iOSPlugin" */;
+			buildConfigurationList = E497C7DB1E6613CA00FE34CB /* Build configuration list for PBXNativeTarget "BackgroundLocationPlugin" */;
 			buildPhases = (
 				E497C7CE1E6613CA00FE34CB /* Sources */,
 				E497C7CF1E6613CA00FE34CB /* Frameworks */,
@@ -86,9 +86,9 @@
 			);
 			dependencies = (
 			);
-			name = iOSPlugin;
+			name = BackgroundLocationPlugin;
 			productName = iOSPlugin;
-			productReference = E497C7D21E6613CA00FE34CB /* libiOSPlugin.a */;
+			productReference = E497C7D21E6613CA00FE34CB /* libBackgroundLocationPlugin.a */;
 			productType = "com.apple.product-type.library.static";
 		};
 /* End PBXNativeTarget section */
@@ -106,11 +106,12 @@
 					};
 				};
 			};
-			buildConfigurationList = E497C7CD1E6613CA00FE34CB /* Build configuration list for PBXProject "iOSPlugin" */;
+			buildConfigurationList = E497C7CD1E6613CA00FE34CB /* Build configuration list for PBXProject "BackgroundLocationPlugin" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = E497C7C91E6613CA00FE34CB;
@@ -118,7 +119,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				E497C7D11E6613CA00FE34CB /* iOSPlugin */,
+				E497C7D11E6613CA00FE34CB /* BackgroundLocationPlugin */,
 			);
 		};
 /* End PBXProject section */
@@ -245,7 +246,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		E497C7CD1E6613CA00FE34CB /* Build configuration list for PBXProject "iOSPlugin" */ = {
+		E497C7CD1E6613CA00FE34CB /* Build configuration list for PBXProject "BackgroundLocationPlugin" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				E497C7D91E6613CA00FE34CB /* Debug */,
@@ -254,7 +255,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		E497C7DB1E6613CA00FE34CB /* Build configuration list for PBXNativeTarget "iOSPlugin" */ = {
+		E497C7DB1E6613CA00FE34CB /* Build configuration list for PBXNativeTarget "BackgroundLocationPlugin" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				E497C7DC1E6613CA00FE34CB /* Debug */,
