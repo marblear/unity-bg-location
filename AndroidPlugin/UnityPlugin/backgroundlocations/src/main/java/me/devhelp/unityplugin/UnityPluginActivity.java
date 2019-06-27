@@ -1,5 +1,6 @@
 package me.devhelp.unityplugin;
 
+import android.annotation.TargetApi;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -11,6 +12,7 @@ import com.google.gson.Gson;
 import com.unity3d.player.UnityPlayer;
 import com.unity3d.player.UnityPlayerActivity;
 
+import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,13 +37,19 @@ public class UnityPluginActivity extends UnityPlayerActivity {
         stopLocationService();
     }
 
-
+    @TargetApi(26)
     public void startLocationService() {
         checkPermissions();
         Log.i(LOG_TAG, "UnityPluginActivity:startLocationService");
         PendingIntent pendingIntent = createPendingResult(REQUEST_LOCATION, new Intent(), PendingIntent.FLAG_UPDATE_CURRENT);
         locationIntent.putExtra(LocationService.PENDING_INTENT, pendingIntent);
-        startService(locationIntent);
+        if (android.os.Build.VERSION.SDK_INT >= 26) {
+            Log.i(LOG_TAG, "starting service in foreground");
+            startForegroundService(locationIntent);
+        } else {
+            Log.i(LOG_TAG, "starting service in background");
+            startService(locationIntent);
+        }
     }
 
     public void stopLocationService() {

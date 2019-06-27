@@ -1,5 +1,10 @@
 package me.devhelp.unityplugin;
 
+import android.annotation.TargetApi;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ContentValues;
 import android.content.Context;
@@ -17,6 +22,8 @@ public class LocationService extends Service {
     public static final String PENDING_INTENT = "pendingIntent";
     private static final int LOCATION_INTERVAL = 1000;
     private static final float LOCATION_DISTANCE = 10f;
+    private static final String CHANNEL_ID = "com.marblear.prototype.Notifications";
+    private static final int ONGOING_NOTIFICATION_ID = 1;
 
     private LocationManager locationManager;
 
@@ -33,7 +40,31 @@ public class LocationService extends Service {
     public void onCreate() {
         super.onCreate();
         Log.d(LOG_TAG, "LocationService:onCreate");
+        if (android.os.Build.VERSION.SDK_INT >= 26) {
+            setToForeground();
+        }
         locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+    }
+    @TargetApi(26)
+    private void setToForeground() {
+        Log.d(LOG_TAG, "LocationService:setToForeground");
+        Intent notificationIntent = new Intent(this, UnityPluginActivity.class);
+        PendingIntent pendingIntent =
+                PendingIntent.getActivity(this, 0, notificationIntent, 0);
+        int importance = NotificationManager.IMPORTANCE_DEFAULT;
+        NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Notification channel", importance);
+        channel.setDescription("Notification channel description");
+        NotificationManager notificationManager = getSystemService(NotificationManager.class);
+        notificationManager.createNotificationChannel(channel);
+        Notification notification =
+                new Notification.Builder(this, CHANNEL_ID)
+                        .setContentTitle("Title")
+                        .setContentText("Message")
+                        //.setSmallIcon(R.drawable.icon)
+                        .setContentIntent(pendingIntent)
+                        .setTicker("Ticker text")
+                        .build();
+        startForeground(ONGOING_NOTIFICATION_ID, notification);
     }
 
     @Override
@@ -45,7 +76,7 @@ public class LocationService extends Service {
                 locationManager.removeUpdates(gpsListener);
                 locationManager.removeUpdates(networkListener);
             } catch (SecurityException ex) {
-                Log.w(LOG_TAG, "fail to remove location listners, ignore", ex);
+                Log.w(LOG_TAG, "fail to remove location listeners, ignore", ex);
             }
         }
     }
@@ -54,6 +85,7 @@ public class LocationService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(LOG_TAG, "LocationService:onStartCommand flags = " + flags + " startId = " + startId);
         if (startId == 1) {
+            Log.d(LOG_TAG, "initializing GPS location provider");
             try {
                 locationManager.requestLocationUpdates(
                         LocationManager.GPS_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
@@ -62,7 +94,10 @@ public class LocationService extends Service {
                 Log.w(LOG_TAG, "fail to request location update, ignore", ex);
             } catch (IllegalArgumentException ex) {
                 Log.w(LOG_TAG, "provider does not exist, " + ex);
+            } catch (Exception ex) {
+                Log.w(LOG_TAG, "GPS provider could not be initialized " + ex);
             }
+            Log.d(LOG_TAG, "initializing network location provider");
             try {
                 locationManager.requestLocationUpdates(
                         LocationManager.NETWORK_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
