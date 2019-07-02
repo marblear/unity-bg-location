@@ -16,19 +16,36 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
+import com.loopj.android.http.JsonHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
+import cz.msebera.android.httpclient.Header;
+import org.json.*;
+
+import java.util.Date;
+
 import static me.devhelp.unityplugin.UnityPluginActivity.LOG_TAG;
 
 public class LocationService extends Service {
     public static final String PENDING_INTENT = "pendingIntent";
-    private static final int LOCATION_INTERVAL = 1000;
-    private static final float LOCATION_DISTANCE = 10f;
+    public static final String USER_ID = "userId";
+    public static final String USER_TOKEN = "accessToken";
+    public static final String SERVER_URL = "https://prototype.marblear.com";
+    private static final int LOCATION_INTERVAL = 1000; // milliseconds
+    private static final int SPOT_UPDATE_INTERVAL = 1000 * 60 * 3; // milliseconds
+    private static final float LOCATION_DISTANCE = 10f; // meters
     private static final String CHANNEL_ID = "com.marblear.prototype.Notifications";
     private static final int ONGOING_NOTIFICATION_ID = 1;
+    private static final String SPOTS_NEARBY_ENDPOINT = "/api/spotsNearby";
+    private static final String LATITUDE_PARAM = "lat";
+    private static final String LONGITUDE_PARAM = "lon";
+    private static Date lastSpotUpdate;
+    private static JSONArray currentSpots;
 
     private LocationManager locationManager;
-
     private LocationListener gpsListener = new LocationListener();
     private LocationListener networkListener = new LocationListener();
+
+    private MarbleRestClient restClient;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -44,7 +61,9 @@ public class LocationService extends Service {
             setToForeground();
         }
         locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+        restClient = new MarbleRestClient(SERVER_URL, "userId12345", "token4711");
     }
+
     @TargetApi(26)
     private void setToForeground() {
         Log.d(LOG_TAG, "LocationService:setToForeground");
@@ -120,6 +139,7 @@ public class LocationService extends Service {
                 lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
             }
             saveLocation(lastKnownLocation);
+            getSpotsAt(lastKnownLocation);
         } catch (SecurityException ex) {
             Log.e(LOG_TAG, "fail to request initial location ", ex);
         } catch (IllegalArgumentException ex) {
@@ -129,7 +149,6 @@ public class LocationService extends Service {
 
     private void saveLocation(Location location) {
         if (location == null) return;
-
         ContentValues values = new ContentValues();
         values.put(LocationContentProvider.LOCATION_TIME, System.currentTimeMillis());
         values.put(LocationContentProvider.LOCATION_LATITUDE, location.getLatitude());
@@ -138,11 +157,46 @@ public class LocationService extends Service {
         Log.d(LOG_TAG, "inserted new location, location: " + location);
     }
 
+    private void getSpotsAt(final Location location) {
+        final Date now = new Date();
+        if (lastSpotUpdate != null && now.getTime() < lastSpotUpdate.getTime() + SPOT_UPDATE_INTERVAL) {
+            checkSpotNotification(location);
+            return;
+        }
+        RequestParams params = new RequestParams();
+        params.add(LATITUDE_PARAM, Double.toString(location.getLatitude()));
+        params.add(LONGITUDE_PARAM, Double.toString(location.getLongitude()));
+        restClient.get(SPOTS_NEARBY_ENDPOINT, params, new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                // Ignore, if the response is JSONObject instead of expected JSONArray
+            }
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONArray spots) {
+                currentSpots = spots;
+                lastSpotUpdate = now;
+                try {
+                    String spotsLog = spots.toString(2);
+                    Log.d(LOG_TAG, "Updated spots:");
+                    Log.d(LOG_TAG, spotsLog);
+                } catch (JSONException ex) {
+                    Log.d(LOG_TAG, ex.getMessage());
+                }
+                checkSpotNotification(location);
+            }
+        });
+    }
+
+    private void checkSpotNotification(Location location) {
+        Log.d(LOG_TAG, "Checking spot notification");
+    }
+
     private class LocationListener implements android.location.LocationListener {
         @Override
         public void onLocationChanged(Location location) {
             Log.d(LOG_TAG, "LocationListener:onLocationChanged: " + location);
             saveLocation(location);
+            getSpotsAt(location);
         }
 
         @Override

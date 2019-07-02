@@ -39,7 +39,11 @@ namespace Service
 		public void start() {
 			if (activityObj != null) {
 				Debug.Log("BackgroundLocationService start");
-				activityObj.Call("startLocationService");
+				object[] method_args = new object[3];
+				method_args[0] = "https://prototype.marblear.com"; // token
+				method_args[1] = "273871725412"; // userId
+				method_args[2] = "ab02u4uc1823"; // token
+				activityObj.Call("startLocationService", method_args);
 			}
 		}
 

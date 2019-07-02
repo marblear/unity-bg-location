@@ -9,10 +9,8 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.google.gson.Gson;
-import com.unity3d.player.UnityPlayer;
 import com.unity3d.player.UnityPlayerActivity;
 
-import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,11 +36,14 @@ public class UnityPluginActivity extends UnityPlayerActivity {
     }
 
     @TargetApi(26)
-    public void startLocationService() {
+    public void startLocationService(String serverUrl, String userId, String userToken) {
         checkPermissions();
         Log.i(LOG_TAG, "UnityPluginActivity:startLocationService");
         PendingIntent pendingIntent = createPendingResult(REQUEST_LOCATION, new Intent(), PendingIntent.FLAG_UPDATE_CURRENT);
         locationIntent.putExtra(LocationService.PENDING_INTENT, pendingIntent);
+        locationIntent.putExtra(LocationService.SERVER_URL, serverUrl);
+        locationIntent.putExtra(LocationService.USER_ID, userId);
+        locationIntent.putExtra(LocationService.USER_TOKEN, userToken);
         if (android.os.Build.VERSION.SDK_INT >= 26) {
             Log.i(LOG_TAG, "starting service in foreground");
             startForegroundService(locationIntent);
@@ -50,6 +51,10 @@ public class UnityPluginActivity extends UnityPlayerActivity {
             Log.i(LOG_TAG, "starting service in background");
             startService(locationIntent);
         }
+    }
+    @Deprecated
+    public void startLocationService() {
+        startLocationService(null, null, null);
     }
 
     public void stopLocationService() {

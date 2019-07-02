@@ -20,8 +20,9 @@ dependencies {
     //implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.google.code.gson:gson:2.8.2'
     compileOnly files('libs/classes.jar')
+    implementation 'com.loopj.android:android-async-http:1.4.9'
+    implementation 'cz.msebera.android:httpclient:4.3.6'
 }
-
 
 //task clearJar(type: Delete) {
 //    delete '/AndroidPlugin.jar'
