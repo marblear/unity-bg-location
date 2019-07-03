@@ -141,7 +141,6 @@ public class LocationService extends Service {
                 lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
             }
             saveLocation(lastKnownLocation);
-            getSpotsAt(lastKnownLocation);
         } catch (SecurityException ex) {
             Log.e(LOG_TAG, "fail to request initial location ", ex);
         } catch (IllegalArgumentException ex) {
@@ -165,6 +164,7 @@ public class LocationService extends Service {
             checkSpotNotification(location);
             return;
         }
+        lastSpotUpdate = now;
         RequestParams params = new RequestParams();
         String lat = Double.toString(location.getLatitude());
         String lon = Double.toString(location.getLongitude());
@@ -180,7 +180,6 @@ public class LocationService extends Service {
                     JSONArray spots = response.getJSONArray("results");
                     Log.d(LOG_TAG, spots.length() + " elements in spots array");
                     currentSpots = spots;
-                    lastSpotUpdate = now;
                     String spotsLog = spots.toString(2);
                     Log.d(LOG_TAG, "Updated spots:");
                     Log.d(LOG_TAG, spotsLog);
