@@ -166,23 +166,21 @@ public class LocationService extends Service {
             return;
         }
         RequestParams params = new RequestParams();
-        params.add(LATITUDE_PARAM, Double.toString(location.getLatitude()));
-        params.add(LONGITUDE_PARAM, Double.toString(location.getLongitude()));
-        Log.d(LOG_TAG, "calling GET of restClient NEW");
+        String lat = Double.toString(location.getLatitude());
+        String lon = Double.toString(location.getLongitude());
+        params.add(LATITUDE_PARAM, lat);
+        params.add(LONGITUDE_PARAM, lon);
+        Log.d(LOG_TAG, "getting spots for " + lat + "," + lon);
         restClient.get(SPOTS_NEARBY_ENDPOINT, params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 Log.d(LOG_TAG, "received JSONObject response");
                 Log.d(LOG_TAG, response.toString());
-                // Ignore, if the response is JSONObject instead of expected JSONArray
-            }
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONArray spots) {
-                Log.d(LOG_TAG, "received JSONArray response");
-                Log.d(LOG_TAG, spots.length() + " elements in spots array");
-                currentSpots = spots;
-                lastSpotUpdate = now;
                 try {
+                    JSONArray spots = response.getJSONArray("results");
+                    Log.d(LOG_TAG, spots.length() + " elements in spots array");
+                    currentSpots = spots;
+                    lastSpotUpdate = now;
                     String spotsLog = spots.toString(2);
                     Log.d(LOG_TAG, "Updated spots:");
                     Log.d(LOG_TAG, spotsLog);
@@ -190,6 +188,11 @@ public class LocationService extends Service {
                     Log.d(LOG_TAG, ex.getMessage());
                 }
                 checkSpotNotification(location);
+            }
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
+                Log.d(LOG_TAG, "received JSONArray response");
+                // Ignore, if the response is JSONObject instead of expected JSONArray
             }
         });
     }
