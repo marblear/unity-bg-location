@@ -18,8 +18,10 @@ import android.util.Log;
 
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
-import cz.msebera.android.httpclient.Header;
-import org.json.*;
+import org.apache.http.Header;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.json.JSONException;
 
 import java.util.Date;
 
@@ -166,13 +168,18 @@ public class LocationService extends Service {
         RequestParams params = new RequestParams();
         params.add(LATITUDE_PARAM, Double.toString(location.getLatitude()));
         params.add(LONGITUDE_PARAM, Double.toString(location.getLongitude()));
+        Log.d(LOG_TAG, "calling GET of restClient NEW");
         restClient.get(SPOTS_NEARBY_ENDPOINT, params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                Log.d(LOG_TAG, "received JSONObject response");
+                Log.d(LOG_TAG, response.toString());
                 // Ignore, if the response is JSONObject instead of expected JSONArray
             }
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONArray spots) {
+                Log.d(LOG_TAG, "received JSONArray response");
+                Log.d(LOG_TAG, spots.length() + " elements in spots array");
                 currentSpots = spots;
                 lastSpotUpdate = now;
                 try {

@@ -17,5 +17,8 @@
             android:name=".LocationContentProvider"
             android:authorities="me.devhelp.plugin.provider.store"
             android:exported="false" />
+        <uses-library
+            android:name="org.apache.http.legacy"
+            android:required="true" />
     </application>
 </manifest>

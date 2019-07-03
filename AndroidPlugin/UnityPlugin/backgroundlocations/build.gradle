@@ -14,14 +14,16 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    useLibrary 'org.apache.http.legacy'
 }
 
 dependencies {
     //implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.google.code.gson:gson:2.8.2'
     compileOnly files('libs/classes.jar')
-    implementation 'com.loopj.android:android-async-http:1.4.9'
-    implementation 'cz.msebera.android:httpclient:4.3.6'
+    implementation 'com.loopj.android:android-async-http:1.4.8'
+    //implementation 'cz.msebera.android:httpclient:4.3.6'
+    //implementation group: 'org.apache.httpcomponents' , name: 'httpclient-android' , version: '4.3.5.1'
 }
 
 //task clearJar(type: Delete) {
