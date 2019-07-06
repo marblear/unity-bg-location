@@ -15,15 +15,49 @@ android {
         }
     }
     useLibrary 'org.apache.http.legacy'
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8 // for Stich / MongoDB Mobile
+        targetCompatibility = JavaVersion.VERSION_1_8 // for Stich / MongoDB Mobile
+    }
+    configurations {
+        includeJars
+    }
 }
 
 dependencies {
     //implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.google.code.gson:gson:2.8.2'
     compileOnly files('libs/classes.jar')
-    implementation 'com.loopj.android:android-async-http:1.4.8'
+    implementation 'com.loopj.android:android-async-http:1.4.8' // retrieving spots via REST API
+    implementation 'org.mongodb:stitch-android-core:4.4.1' // storing spots in MongoDB Mobile
+    implementation 'org.mongodb:stitch-android-services-mongodb-remote:4.4.1'
+    //includeJars 'org.mongodb:stitch-android-core:4.4.1' // storing spots in MongoDB Mobile
+    //includeJars 'org.mongodb:stitch-android-services-mongodb-remote:4.4.1'
     //implementation 'cz.msebera.android:httpclient:4.3.6'
     //implementation group: 'org.apache.httpcomponents' , name: 'httpclient-android' , version: '4.3.5.1'
+}
+
+// Main "magic" script to do the job
+project.afterEvaluate {
+    def isAndroidLibraryProject = project.plugins.hasPlugin('com.android.library')
+    if(isAndroidLibraryProject) {
+        task copyDeps(type:Copy) {
+            from configurations.includeJars {
+                include '**/*.jar'
+                include '**/*.aar'
+            }
+            into "./build/intermediates/packaged-classes/release/libs" // this folder gets packaged inside the AAR
+        }
+        mergeReleaseJniLibFolders.dependsOn copyDeps // only this stage worked for me - neither earlier, nor later
+
+        task copyDebugDeps(type:Copy) {
+            from configurations.includeJars {
+                include '**/*.jar'
+            }
+            into "./build/intermediates/packaged-classes/debug/libs"
+        }
+        mergeDebugJniLibFolders.dependsOn copyDebugDeps
+    }
 }
 
 //task clearJar(type: Delete) {

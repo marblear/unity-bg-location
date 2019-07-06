@@ -22,6 +22,7 @@ import org.apache.http.Header;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONException;
+import org.bson.Document;
 
 import java.util.Date;
 
@@ -35,6 +36,7 @@ public class LocationService extends Service {
     private static final int LOCATION_INTERVAL = 1000; // milliseconds
     private static final int SPOT_UPDATE_INTERVAL = 1000 * 60 * 3; // milliseconds
     private static final float LOCATION_DISTANCE = 10f; // meters
+    private static final double NOTIFICATION_DISTANCE = 10.0; // meters
     private static final String CHANNEL_ID = "com.marblear.prototype.Notifications";
     private static final int ONGOING_NOTIFICATION_ID = 1;
     private static final String SPOTS_NEARBY_ENDPOINT = "/api/spotsNearby";
@@ -48,6 +50,7 @@ public class LocationService extends Service {
     private LocationListener networkListener = new LocationListener();
 
     private MarbleRestClient restClient;
+    private SpotDatabase db;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -64,6 +67,7 @@ public class LocationService extends Service {
         }
         locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
         restClient = new MarbleRestClient(SERVER_URL, "userId12345", "token4711");
+        db = new SpotDatabase(getApplicationContext());
     }
 
     @TargetApi(26)
@@ -178,6 +182,10 @@ public class LocationService extends Service {
                     JSONArray spots = response.getJSONArray("results");
                     Log.d(LOG_TAG, spots.length() + " elements in spots array");
                     currentSpots = spots;
+                    for (int i = 0; i < spots.length(); i++) {
+                        JSONObject spot = spots.getJSONObject(i);
+                        db.upsert(spot.toString());
+                    }
                     String spotsLog = spots.toString(2);
                     Log.d(LOG_TAG, "Updated spots:");
                     Log.d(LOG_TAG, spotsLog);
@@ -196,6 +204,12 @@ public class LocationService extends Service {
 
     private void checkSpotNotification(Location location) {
         Log.d(LOG_TAG, "Checking spot notification");
+        Document spot = db.getSpotNear(location, NOTIFICATION_DISTANCE);
+        if (spot == null) {
+            Log.d(LOG_TAG, "No spot nearby");
+            return;
+        }
+        Log.d(LOG_TAG, "Notify about spot nearby: " + spot.getString("properties.name"));
     }
 
     private class LocationListener implements android.location.LocationListener {
