@@ -16,8 +16,8 @@ public class GeoJsonPoint {
         return Math.pow(Math.sin(value / 2), 2);
     }
     public double haversineDistance(Location from) {
-        double dLat = Math.toRadians((getLatitude() - from.getLatitude()));
-        double dLon = Math.toRadians((getLongitude() - from.getLongitude()));
+        double dLat = Math.toRadians(getLatitude() - from.getLatitude());
+        double dLon = Math.toRadians(getLongitude() - from.getLongitude());
         double ownLat = Math.toRadians(getLatitude());
         double fromLat = Math.toRadians(from.getLatitude());
         double a = haversin(dLat) + Math.cos(ownLat) * Math.cos(fromLat) * haversin(dLon);

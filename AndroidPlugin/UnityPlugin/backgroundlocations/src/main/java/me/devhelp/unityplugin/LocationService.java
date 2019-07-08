@@ -43,7 +43,6 @@ public class LocationService extends Service {
     private static final String LATITUDE_PARAM = "lat";
     private static final String LONGITUDE_PARAM = "lon";
     private static Date lastSpotUpdate;
-    private static JSONArray currentSpots;
 
     private LocationManager locationManager;
     private LocationListener gpsListener = new LocationListener();
@@ -181,18 +180,15 @@ public class LocationService extends Service {
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 try {
                     JSONArray spotsJson = response.getJSONArray("results");
-                    Log.d(LOG_TAG, spotsJson.length() + " elements in spots array");
-                    Log.d(LOG_TAG, "adding spots:");
-                    currentSpots = spotsJson;
+//                    Log.d(LOG_TAG, spotsJson.length() + " elements in spots array");
+//                    Log.d(LOG_TAG, "adding spots:");
+                    db.clear();
                     for (int i = 0; i < spotsJson.length(); i++) {
                         JSONObject spotJson = spotsJson.getJSONObject(i);
                         Spot spot = gson.fromJson(spotJson.toString(), Spot.class);
-                        Log.d(LOG_TAG, spot.properties.name);
+//                        Log.d(LOG_TAG, spot.properties.name);
                         db.upsert(spot);
                     }
-//                    String spotsLog = spotsJson.toString(2);
-//                    Log.d(LOG_TAG, "Updated spots:");
-//                    Log.d(LOG_TAG, spotsLog);
                 } catch (JSONException ex) {
                     Log.d(LOG_TAG, ex.getMessage());
                 }
