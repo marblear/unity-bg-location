@@ -41,6 +41,7 @@ public class LocationService extends Service {
     private static final double NOTIFICATION_DISTANCE = 10.0; // meters
     private static final String CHANNEL_ID = "com.marblear.prototype.Notifications";
     private static final int ONGOING_NOTIFICATION_ID = 1;
+    private static final int MARBLE_NOTIFICATION_ID = 2;
     private static final String SPOTS_NEARBY_ENDPOINT = "/api/spotsNearby";
     private static final String LATITUDE_URL_PARAM = "lat";
     private static final String LONGITUDE_URL_PARAM = "lon";
@@ -65,6 +66,7 @@ public class LocationService extends Service {
         super.onCreate();
         Log.d(LOG_TAG, "LocationService:onCreate");
         if (android.os.Build.VERSION.SDK_INT >= 26) {
+            setupNotificationChannel();
             setToForeground();
         }
         locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
@@ -73,15 +75,19 @@ public class LocationService extends Service {
     }
 
     @TargetApi(26)
-    private void setToForeground() {
-        Log.d(LOG_TAG, "LocationService:setToForeground");
-        Intent intent = new Intent(this, UnityPluginActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+    private void setupNotificationChannel() {
         int importance = NotificationManager.IMPORTANCE_DEFAULT;
         NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Notification channel", importance);
         channel.setDescription("Notification channel description");
         NotificationManager notificationManager = getSystemService(NotificationManager.class);
         notificationManager.createNotificationChannel(channel);
+    }
+
+    @TargetApi(26)
+    private void setToForeground() {
+        Log.d(LOG_TAG, "LocationService:setToForeground");
+        Intent intent = new Intent(this, UnityPluginActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
         Notification notification =
                 new Notification.Builder(this, CHANNEL_ID)
                         .setContentTitle("Marble notifications")
@@ -221,6 +227,26 @@ public class LocationService extends Service {
             return;
         }
         Log.d(LOG_TAG, "Nearest spot: " + spot.properties.name);
+        showSpotNotification(spot);
+    }
+
+    private void showSpotNotification(Spot spot) {
+        Intent intent = new Intent(this, UnityPluginActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+        Notification.Builder builder = android.os.Build.VERSION.SDK_INT >= 26 ?
+            new Notification.Builder(this, CHANNEL_ID):
+            new Notification.Builder(this);
+        Notification notification = builder
+                .setContentTitle("Marble nearby:")
+                .setContentText(spot.properties.name)
+                .setSmallIcon(R.drawable.ic_notification_marble)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .addAction(R.drawable.ic_notification_marble, "Open", pendingIntent)
+                .build();
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        notificationManager.notify(MARBLE_NOTIFICATION_ID, notification);
     }
 
     private class LocationListener implements android.location.LocationListener {
