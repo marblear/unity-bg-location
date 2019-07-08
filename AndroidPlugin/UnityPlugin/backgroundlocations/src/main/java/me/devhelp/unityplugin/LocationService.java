@@ -1,5 +1,7 @@
 package me.devhelp.unityplugin;
 
+import me.devhelp.unityplugin.R;
+
 import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -40,8 +42,8 @@ public class LocationService extends Service {
     private static final String CHANNEL_ID = "com.marblear.prototype.Notifications";
     private static final int ONGOING_NOTIFICATION_ID = 1;
     private static final String SPOTS_NEARBY_ENDPOINT = "/api/spotsNearby";
-    private static final String LATITUDE_PARAM = "lat";
-    private static final String LONGITUDE_PARAM = "lon";
+    private static final String LATITUDE_URL_PARAM = "lat";
+    private static final String LONGITUDE_URL_PARAM = "lon";
     private static Date lastSpotUpdate;
 
     private LocationManager locationManager;
@@ -73,9 +75,8 @@ public class LocationService extends Service {
     @TargetApi(26)
     private void setToForeground() {
         Log.d(LOG_TAG, "LocationService:setToForeground");
-        Intent notificationIntent = new Intent(this, UnityPluginActivity.class);
-        PendingIntent pendingIntent =
-                PendingIntent.getActivity(this, 0, notificationIntent, 0);
+        Intent intent = new Intent(this, UnityPluginActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
         int importance = NotificationManager.IMPORTANCE_DEFAULT;
         NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Notification channel", importance);
         channel.setDescription("Notification channel description");
@@ -83,13 +84,20 @@ public class LocationService extends Service {
         notificationManager.createNotificationChannel(channel);
         Notification notification =
                 new Notification.Builder(this, CHANNEL_ID)
-                        .setContentTitle("Title")
-                        .setContentText("Message")
-                        //.setSmallIcon(R.drawable.icon)
+                        .setContentTitle("Marble notifications")
+                        .setContentText("This background service will notify you if a Marble is nearby.")
+                        .setSmallIcon(R.drawable.ic_notification_marble)
                         .setContentIntent(pendingIntent)
                         .setTicker("Ticker text")
+                        .setWhen(System.currentTimeMillis())
+                        .setFullScreenIntent(pendingIntent, true)
                         .build();
         startForeground(ONGOING_NOTIFICATION_ID, notification);
+    }
+
+    private void stopForegroundService() {
+        stopForeground(true);
+        stopSelf();
     }
 
     @Override
@@ -108,6 +116,9 @@ public class LocationService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+//        if (android.os.Build.VERSION.SDK_INT >= 26) {
+//            setToForeground();
+//        }
         Log.d(LOG_TAG, "LocationService:onStartCommand flags = " + flags + " startId = " + startId);
         if (startId == 1) {
             Log.d(LOG_TAG, "initializing GPS location provider");
@@ -172,8 +183,8 @@ public class LocationService extends Service {
         RequestParams params = new RequestParams();
         String lat = Double.toString(location.getLatitude());
         String lon = Double.toString(location.getLongitude());
-        params.add(LATITUDE_PARAM, lat);
-        params.add(LONGITUDE_PARAM, lon);
+        params.add(LATITUDE_URL_PARAM, lat);
+        params.add(LONGITUDE_URL_PARAM, lon);
         Log.d(LOG_TAG, "getting spots for " + lat + "," + lon);
         restClient.get(SPOTS_NEARBY_ENDPOINT, params, new JsonHttpResponseHandler() {
             @Override
