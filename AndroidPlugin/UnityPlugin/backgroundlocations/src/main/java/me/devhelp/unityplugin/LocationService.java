@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
+import com.google.gson.Gson;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 import org.apache.http.Header;
@@ -35,6 +36,7 @@ public class LocationService extends Service {
     private static final int LOCATION_INTERVAL = 1000; // milliseconds
     private static final int SPOT_UPDATE_INTERVAL = 1000 * 60 * 3; // milliseconds
     private static final float LOCATION_DISTANCE = 10f; // meters
+    private static final double NOTIFICATION_DISTANCE = 10.0; // meters
     private static final String CHANNEL_ID = "com.marblear.prototype.Notifications";
     private static final int ONGOING_NOTIFICATION_ID = 1;
     private static final String SPOTS_NEARBY_ENDPOINT = "/api/spotsNearby";
@@ -48,6 +50,8 @@ public class LocationService extends Service {
     private LocationListener networkListener = new LocationListener();
 
     private MarbleRestClient restClient;
+    private SpotDatabase db;
+    private Gson gson = new Gson();
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -64,6 +68,7 @@ public class LocationService extends Service {
         }
         locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
         restClient = new MarbleRestClient(SERVER_URL, "userId12345", "token4711");
+        db = new SpotDatabase();
     }
 
     @TargetApi(26)
@@ -175,12 +180,19 @@ public class LocationService extends Service {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 try {
-                    JSONArray spots = response.getJSONArray("results");
-                    Log.d(LOG_TAG, spots.length() + " elements in spots array");
-                    currentSpots = spots;
-                    String spotsLog = spots.toString(2);
-                    Log.d(LOG_TAG, "Updated spots:");
-                    Log.d(LOG_TAG, spotsLog);
+                    JSONArray spotsJson = response.getJSONArray("results");
+                    Log.d(LOG_TAG, spotsJson.length() + " elements in spots array");
+                    Log.d(LOG_TAG, "adding spots:");
+                    currentSpots = spotsJson;
+                    for (int i = 0; i < spotsJson.length(); i++) {
+                        JSONObject spotJson = spotsJson.getJSONObject(i);
+                        Spot spot = gson.fromJson(spotJson.toString(), Spot.class);
+                        Log.d(LOG_TAG, spot.properties.name);
+                        db.upsert(spot);
+                    }
+//                    String spotsLog = spotsJson.toString(2);
+//                    Log.d(LOG_TAG, "Updated spots:");
+//                    Log.d(LOG_TAG, spotsLog);
                 } catch (JSONException ex) {
                     Log.d(LOG_TAG, ex.getMessage());
                 }
@@ -196,6 +208,12 @@ public class LocationService extends Service {
 
     private void checkSpotNotification(Location location) {
         Log.d(LOG_TAG, "Checking spot notification");
+        Spot spot = db.getSpotNear(location, NOTIFICATION_DISTANCE);
+        if (spot == null) {
+            Log.d(LOG_TAG, "No spot nearby");
+            return;
+        }
+        Log.d(LOG_TAG, "Nearest spot: " + spot.properties.name);
     }
 
     private class LocationListener implements android.location.LocationListener {
