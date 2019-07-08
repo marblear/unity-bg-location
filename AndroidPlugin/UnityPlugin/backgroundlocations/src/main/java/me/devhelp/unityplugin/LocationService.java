@@ -36,7 +36,7 @@ public class LocationService extends Service {
     public static final String USER_TOKEN = "accessToken";
     public static final String SERVER_URL = "https://prototype.marblear.com";
     private static final int LOCATION_INTERVAL = 1000; // milliseconds
-    private static final int SPOT_UPDATE_INTERVAL = 1000 * 60 * 3; // milliseconds
+    private static final int SPOT_UPDATE_INTERVAL = 1000 * 60 * 3; // 3 minutes
     private static final float LOCATION_DISTANCE = 10f; // meters
     private static final double NOTIFICATION_DISTANCE = 10.0; // meters
     private static final String CHANNEL_ID = "com.marblear.prototype.Notifications";
@@ -122,9 +122,6 @@ public class LocationService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-//        if (android.os.Build.VERSION.SDK_INT >= 26) {
-//            setToForeground();
-//        }
         Log.d(LOG_TAG, "LocationService:onStartCommand flags = " + flags + " startId = " + startId);
         if (startId == 1) {
             Log.d(LOG_TAG, "initializing GPS location provider");
