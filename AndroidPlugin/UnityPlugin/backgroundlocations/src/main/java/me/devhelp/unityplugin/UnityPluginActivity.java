@@ -1,6 +1,5 @@
 package me.devhelp.unityplugin;
 
-import android.annotation.TargetApi;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -18,6 +17,9 @@ public class UnityPluginActivity extends UnityPlayerActivity {
     private static final int REQUEST_LOCATION = 1;
     private static final int LOCATION_REQUEST_CODE = 1010;
     public static final String LOG_TAG = "LocationPlugin";
+    private String serverUrl;
+    private String userId;
+    private String userToken;
     private Intent locationIntent;
 
 
@@ -35,9 +37,54 @@ public class UnityPluginActivity extends UnityPlayerActivity {
         stopLocationService();
     }
 
-    @TargetApi(26)
+    // Old entry point for Unity
+    @Deprecated
+    public void startLocationService() {
+        startLocationService(null, null, null);
+    }
+
+    // Entry point for Unity
     public void startLocationService(String serverUrl, String userId, String userToken) {
+        this.serverUrl = serverUrl;
+        this.userId = userId;
+        this.userToken = userToken;
         checkPermissions();
+    }
+
+    public void stopLocationService() {
+        Log.i(LOG_TAG, "UnityPluginActivity:stopLocationService");
+        stopService(locationIntent);
+    }
+
+    private boolean hasPermission() {
+        return PackageManager.PERMISSION_GRANTED == checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION);
+    }
+
+    private void checkPermissions() {
+        if (hasPermission()) {
+            Log.i(LOG_TAG, "Location updates permission granted.");
+            startBackgroundLocationService();
+        } else {
+            Log.i(LOG_TAG, "Asking user for location updates permission.");
+            requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case LOCATION_REQUEST_CODE:
+                boolean locationAccepted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                if (locationAccepted) {
+                    startBackgroundLocationService();
+                }
+                break;
+            default:
+        }
+    }
+
+    private void startBackgroundLocationService() {
         Log.i(LOG_TAG, "UnityPluginActivity:startLocationService");
         PendingIntent pendingIntent = createPendingResult(REQUEST_LOCATION, new Intent(), PendingIntent.FLAG_UPDATE_CURRENT);
         locationIntent.putExtra(LocationService.PENDING_INTENT, pendingIntent);
@@ -51,15 +98,6 @@ public class UnityPluginActivity extends UnityPlayerActivity {
             Log.i(LOG_TAG, "starting service in background");
             startService(locationIntent);
         }
-    }
-    @Deprecated
-    public void startLocationService() {
-        startLocationService(null, null, null);
-    }
-
-    public void stopLocationService() {
-        Log.i(LOG_TAG, "UnityPluginActivity:stopLocationService");
-        stopService(locationIntent);
     }
 
     public String getLocationsJson(long time) {
@@ -91,13 +129,5 @@ public class UnityPluginActivity extends UnityPlayerActivity {
         Log.i(LOG_TAG, "Deleted: " + count + "rows");
     }
 
-    private boolean hasPermission() {
-        return PackageManager.PERMISSION_GRANTED == checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION);
-    }
 
-    private void checkPermissions() {
-        if (!hasPermission()) {
-            requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
-        }
-    }
 }

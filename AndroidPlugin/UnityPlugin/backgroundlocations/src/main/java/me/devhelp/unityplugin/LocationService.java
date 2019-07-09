@@ -1,7 +1,5 @@
 package me.devhelp.unityplugin;
 
-import me.devhelp.unityplugin.R;
-
 import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationChannel;
